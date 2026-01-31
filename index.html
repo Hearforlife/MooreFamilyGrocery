@@ -6,7 +6,7 @@
     <meta name="theme-color" content="#1a1a2e">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <title>Family Pantry</title>
+    <title>Moore Family Grocery</title>
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon-192.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -927,7 +927,7 @@
 <body>
     <!-- Header -->
     <header class="header">
-        <div class="logo">Family Pantry</div>
+        <div class="logo">Moore Family</div>
         <div class="header-actions">
             <button class="icon-btn" id="settingsBtn" aria-label="Settings">
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M12 1v6m0 6v6m11-7h-6m-6 0H1m18.4-6.4l-4.2 4.2m-4.4 4.4l-4.2 4.2m0-12.8l4.2 4.2m4.4 4.4l4.2 4.2"></path></svg>
@@ -1173,27 +1173,12 @@
                 <button class="toggle" id="darkModeToggle"></button>
             </div>
 
-            <div class="config-section">
-                <div class="config-title">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
-                    Google Sheet URL
-                </div>
-                <input type="text" class="config-input" id="sheetUrl" placeholder="https://docs.google.com/spreadsheets/d/...">
-                <p class="config-hint">Your Google Sheet with Inventory, ShoppingList, and MealSuggestions tabs</p>
+            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--border);">
+                <p style="font-size: 0.85rem; color: var(--text-muted); text-align: center;">
+                    Moore Family Grocery App<br>
+                    Connected to Google Sheets
+                </p>
             </div>
-
-            <div class="config-section">
-                <div class="config-title">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
-                    Apps Script Web App URL
-                </div>
-                <input type="text" class="config-input" id="scriptUrl" placeholder="https://script.google.com/macros/s/.../exec">
-                <p class="config-hint">Deploy your Apps Script as a web app and paste the URL here</p>
-            </div>
-
-            <button class="btn btn-primary" id="saveSettingsBtn" style="margin-top: 20px;">
-                Save Settings
-            </button>
         </div>
     </div>
 
@@ -1203,8 +1188,8 @@
     <script>
         // ==================== CONFIG ====================
         const CONFIG = {
-            SHEET_URL: localStorage.getItem('sheetUrl') || '',
-            SCRIPT_URL: localStorage.getItem('scriptUrl') || '',
+            SHEET_URL: 'https://docs.google.com/spreadsheets/d/1zX2mr8-r7ktAxvbRbqpIJBoYxLBdgvzoORURx9hGcew/edit',
+            SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbxEraqXxf14wp_pE8T2hdWK8CY6ID4RKqjr5yFzJuxKi6XjE4CjRN6qKqxWwx9Br1bV3Q/exec',
             WEBHOOKS: {
                 PHOTO: 'https://hearforlife.app.n8n.cloud/webhook/a95476d1-0eca-465d-ae70-d061a8b2260c',
                 MEALS: 'https://hearforlife.app.n8n.cloud/webhook/51e82f23-934e-41e4-951a-d8dc1d076b1a',
@@ -1289,8 +1274,6 @@
 
             // Settings button
             $('#settingsBtn').addEventListener('click', () => {
-                $('#sheetUrl').value = CONFIG.SHEET_URL;
-                $('#scriptUrl').value = CONFIG.SCRIPT_URL;
                 $('#settingsModal').classList.add('active');
             });
 
@@ -1301,17 +1284,6 @@
                         overlay.classList.remove('active');
                     }
                 });
-            });
-
-            // Save settings
-            $('#saveSettingsBtn').addEventListener('click', () => {
-                CONFIG.SHEET_URL = $('#sheetUrl').value;
-                CONFIG.SCRIPT_URL = $('#scriptUrl').value;
-                localStorage.setItem('sheetUrl', CONFIG.SHEET_URL);
-                localStorage.setItem('scriptUrl', CONFIG.SCRIPT_URL);
-                $('#settingsModal').classList.remove('active');
-                showToast('Settings saved!');
-                loadInventory();
             });
 
             // Dark mode toggle
