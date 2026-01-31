@@ -1,8 +1,10 @@
 {
-  "name": "Family Pantry",
-  "short_name": "Pantry",
+  "name": "Moore Family Grocery",
+  "short_name": "Grocery",
   "description": "Track your family's groceries, create shopping lists, and get meal ideas",
-  "start_url": "/",
+  "start_url": "/MooreFamilyGrocery/",
+  "scope": "/MooreFamilyGrocery/",
+  "id": "/MooreFamilyGrocery/",
   "display": "standalone",
   "background_color": "#0f0f1a",
   "theme_color": "#1a1a2e",
@@ -20,5 +22,7 @@
       "type": "image/png",
       "purpose": "any maskable"
     }
+  ]
+}
   ]
 }
