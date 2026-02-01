@@ -237,6 +237,7 @@
             color: white;
         }
 
+        .badge-store.anywhere { background: #607d8b; }
         .badge-store.walmart { background: var(--walmart); }
         .badge-store.heb { background: var(--heb); }
         .badge-store.sams { background: var(--sams); }
@@ -659,6 +660,73 @@
             color: var(--text-muted);
         }
 
+        .list-item-actions {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 8px;
+            margin-left: auto;
+        }
+
+        .quick-add-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            border-radius: var(--radius-full);
+            border: none;
+            background: var(--success);
+            color: white;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .quick-add-btn:active {
+            transform: scale(0.95);
+            background: #43a047;
+        }
+
+        .quick-add-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .quantity-controls-mini {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            background: var(--bg-secondary);
+            padding: 2px;
+            border-radius: var(--radius-full);
+        }
+
+        .qty-btn-mini {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            border: none;
+            background: var(--bg-card);
+            color: var(--text-primary);
+            font-size: 1rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .qty-btn-mini:active {
+            background: var(--accent);
+            color: white;
+        }
+
+        .qty-value-mini {
+            min-width: 30px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
         /* Meals Section */
         .meal-card {
             background: var(--bg-card);
@@ -979,6 +1047,7 @@
         <section class="section active" id="inventory-section">
             <div class="filter-row">
                 <button class="filter-chip active" data-filter="all">All</button>
+                <button class="filter-chip" data-filter="anywhere">Anywhere</button>
                 <button class="filter-chip" data-filter="walmart">Walmart</button>
                 <button class="filter-chip" data-filter="heb">HEB</button>
                 <button class="filter-chip" data-filter="sams">Sam's</button>
@@ -1003,6 +1072,7 @@
             </div>
             <div class="filter-row">
                 <button class="filter-chip active" data-list-filter="all">All Stores</button>
+                <button class="filter-chip" data-list-filter="anywhere">Anywhere</button>
                 <button class="filter-chip" data-list-filter="walmart">Walmart</button>
                 <button class="filter-chip" data-list-filter="heb">HEB</button>
                 <button class="filter-chip" data-list-filter="sams">Sam's</button>
@@ -1142,6 +1212,7 @@
                     <div class="form-group">
                         <label class="form-label">Store</label>
                         <select class="form-select" id="itemStore">
+                            <option value="Anywhere">Anywhere</option>
                             <option value="Walmart">Walmart</option>
                             <option value="HEB">HEB</option>
                             <option value="Sam's">Sam's</option>
@@ -1232,6 +1303,7 @@
                     <div class="form-group">
                         <label class="form-label">Store</label>
                         <select class="form-select" id="editItemStore">
+                            <option value="Anywhere">Anywhere</option>
                             <option value="Walmart">Walmart</option>
                             <option value="HEB">HEB</option>
                             <option value="Sam's">Sam's</option>
@@ -1305,7 +1377,7 @@
         // ==================== CONFIG ====================
         const CONFIG = {
             SHEET_URL: 'https://docs.google.com/spreadsheets/d/1zX2mr8-r7ktAxvbRbqpIJBoYxLBdgvzoORURx9hGcew/edit',
-            SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbwICDxDdmPuKRpoW5GAgJQqc6iYTxHZ4SffvUcb_DPKB1IShk7AwIjr5KTlt4qFh-6fbg/exec',
+            SCRIPT_URL: 'https://script.google.com/macros/s/AKfycbxEraqXxf14wp_pE8T2hdWK8CY6ID4RKqjr5yFzJuxKi6XjE4CjRN6qKqxWwx9Br1bV3Q/exec',
             WEBHOOKS: {
                 PHOTO: 'https://hearforlife.app.n8n.cloud/webhook/a95476d1-0eca-465d-ae70-d061a8b2260c',
                 MEALS: 'https://hearforlife.app.n8n.cloud/webhook/51e82f23-934e-41e4-951a-d8dc1d076b1a',
@@ -1683,24 +1755,52 @@
                 const invItem = inventory.find(i => String(i.id) === String(item.id));
                 const currentQty = invItem ? invItem.quantity : 0;
                 const minQty = invItem ? invItem.minQuantity : 1;
+                const neededQty = item.quantityNeeded || 1;
                 
                 return `
                     <div class="list-item" data-id="${item.id}">
                         <div class="list-item-content">
                             <div class="list-item-name">${item.item}</div>
                             <div class="list-item-meta">
-                                <span>Need ${item.quantityNeeded} ${item.unit}</span>
+                                <span>Need ${neededQty} ${item.unit}</span>
                                 <span class="badge badge-store ${storeClass}">${item.store}</span>
                             </div>
                         </div>
-                        <div class="quantity-controls" style="margin-left: auto;">
-                            <button class="qty-btn" onclick="updateFromList('${item.id}', -1)">−</button>
-                            <span class="qty-value">${currentQty}</span>
-                            <button class="qty-btn" onclick="updateFromList('${item.id}', 1)">+</button>
+                        <div class="list-item-actions">
+                            <button class="quick-add-btn" onclick="quickAdd('${item.id}', ${neededQty})" aria-label="Add to cart">
+                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                Got it
+                            </button>
+                            <div class="quantity-controls-mini">
+                                <button class="qty-btn-mini" onclick="updateFromList('${item.id}', -1)">−</button>
+                                <span class="qty-value-mini">${currentQty}</span>
+                                <button class="qty-btn-mini" onclick="updateFromList('${item.id}', 1)">+</button>
+                            </div>
                         </div>
                     </div>
                 `;
             }).join('');
+        }
+
+        async function quickAdd(id, neededQty) {
+            const item = inventory.find(i => String(i.id) === String(id));
+            if (item) {
+                // Add the needed quantity to inventory
+                const newQty = Number(item.quantity) + Number(neededQty);
+                item.quantity = newQty;
+                
+                // Remove from local shopping list immediately
+                shoppingList = shoppingList.filter(i => String(i.id) !== String(id));
+                
+                // Re-render both views
+                renderInventory();
+                renderShoppingList();
+                
+                // Save to server
+                await apiCall('updateQuantity', { id, quantity: newQty });
+                
+                showToast(`${item.item} added! ✓`);
+            }
         }
 
         async function updateFromList(id, delta) {
