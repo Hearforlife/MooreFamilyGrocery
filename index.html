@@ -1414,16 +1414,13 @@
             }
 
             try {
-                const response = await fetch(CONFIG.SCRIPT_URL, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action, ...data })
-                });
+                // Use GET with URL parameters - works better with Apps Script CORS
+                const params = new URLSearchParams();
+                params.append('action', action);
+                params.append('data', JSON.stringify(data));
                 
-                // no-cors mode doesn't give us the response body
-                // For proper functionality, use CORS-enabled deployment
-                return { success: true };
+                const response = await fetch(`${CONFIG.SCRIPT_URL}?${params.toString()}`);
+                return await response.json();
             } catch (error) {
                 console.error('API Error:', error);
                 showToast('Error connecting to server');
