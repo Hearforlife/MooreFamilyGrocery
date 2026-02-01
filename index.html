@@ -1435,11 +1435,24 @@
             }
 
             try {
-                const response = await fetch(`${CONFIG.SCRIPT_URL}?action=${action}`);
-                return await response.json();
+                const response = await fetch(`${CONFIG.SCRIPT_URL}?action=${action}`, {
+                    redirect: 'follow'
+                });
+                
+                if (!response.ok) {
+                    console.error('API response not ok:', response.status);
+                    return null;
+                }
+                
+                const text = await response.text();
+                try {
+                    return JSON.parse(text);
+                } catch (parseError) {
+                    console.error('JSON parse error:', parseError, 'Response:', text.substring(0, 200));
+                    return null;
+                }
             } catch (error) {
                 console.error('API Error:', error);
-                showToast('Error loading data');
                 return null;
             }
         }
@@ -1842,7 +1855,7 @@
         }
 
         // ==================== INIT ====================
-        function init() {
+        async function init() {
             initTheme();
             initNavigation();
             initModals();
@@ -1854,12 +1867,37 @@
 
             // Initial data load
             if (CONFIG.SCRIPT_URL) {
-                loadInventory();
-                loadShoppingList();
+                await loadData();
             }
 
             // Refresh list button
             $('#refreshListBtn').addEventListener('click', refreshShoppingList);
+        }
+
+        async function loadData() {
+            let loadedInventory = false;
+            let loadedList = false;
+
+            // Load inventory first
+            const invResult = await apiGet('getInventory');
+            if (invResult && invResult.data) {
+                inventory = invResult.data;
+                renderInventory();
+                loadedInventory = true;
+            }
+
+            // Then load shopping list
+            const listResult = await apiGet('getShoppingList');
+            if (listResult && listResult.data) {
+                shoppingList = listResult.data;
+                renderShoppingList();
+                loadedList = true;
+            }
+
+            // Only show error if both failed
+            if (!loadedInventory && !loadedList) {
+                showToast('Error connecting to server');
+            }
         }
 
         // Start the app
