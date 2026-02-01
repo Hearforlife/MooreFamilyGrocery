@@ -796,6 +796,36 @@
             height: 18px;
         }
 
+        .card-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .card-edit {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: none;
+            background: rgba(92, 107, 192, 0.1);
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .card-edit:active {
+            transform: scale(0.9);
+            background: var(--accent);
+            color: white;
+        }
+
+        .card-edit svg {
+            width: 16px;
+            height: 16px;
+        }
+
         /* Section Header */
         .section-header {
             display: flex;
@@ -1162,6 +1192,92 @@
         </div>
     </div>
 
+    <!-- Edit Item Modal -->
+    <div class="modal-overlay" id="editModal">
+        <div class="modal">
+            <div class="modal-handle"></div>
+            <h2 class="modal-title">Edit Item</h2>
+            <form id="editItemForm">
+                <input type="hidden" id="editItemId">
+                <div class="form-group">
+                    <label class="form-label">Item Name</label>
+                    <input type="text" class="form-input" id="editItemName" placeholder="e.g., Milk" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Quantity</label>
+                        <input type="number" class="form-input" id="editItemQty" placeholder="1" value="1" min="0" step="any" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Unit</label>
+                        <select class="form-select" id="editItemUnit">
+                            <option value="count">count</option>
+                            <option value="lbs">lbs</option>
+                            <option value="oz">oz</option>
+                            <option value="gallons">gallons</option>
+                            <option value="liters">liters</option>
+                            <option value="boxes">boxes</option>
+                            <option value="bags">bags</option>
+                            <option value="cans">cans</option>
+                            <option value="bottles">bottles</option>
+                            <option value="packs">packs</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Min Quantity (Low Alert)</label>
+                        <input type="number" class="form-input" id="editItemMinQty" placeholder="1" value="1" min="0" step="any">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Store</label>
+                        <select class="form-select" id="editItemStore">
+                            <option value="Walmart">Walmart</option>
+                            <option value="HEB">HEB</option>
+                            <option value="Sam's">Sam's</option>
+                            <option value="Target">Target</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Category</label>
+                        <select class="form-select" id="editItemCategory">
+                            <option value="Groceries">Groceries</option>
+                            <option value="Produce">Produce</option>
+                            <option value="Dairy">Dairy</option>
+                            <option value="Meat">Meat</option>
+                            <option value="Frozen">Frozen</option>
+                            <option value="Pantry">Pantry</option>
+                            <option value="Cleaning Supplies">Cleaning Supplies</option>
+                            <option value="Child Care">Child Care</option>
+                            <option value="Personal Care">Personal Care</option>
+                            <option value="Beverages">Beverages</option>
+                            <option value="Snacks">Snacks</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Priority</label>
+                        <select class="form-select" id="editItemPriority">
+                            <option value="Essential">Essential</option>
+                            <option value="Nice-to-Have">Nice-to-Have</option>
+                            <option value="Occasional">Occasional</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Notes (optional)</label>
+                    <input type="text" class="form-input" id="editItemNotes" placeholder="Any notes...">
+                </div>
+                <button type="submit" class="btn btn-primary">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    Save Changes
+                </button>
+            </form>
+        </div>
+    </div>
+
     <!-- Settings Modal -->
     <div class="modal-overlay" id="settingsModal">
         <div class="modal">
@@ -1373,9 +1489,14 @@
                                     ${isLow ? '<span class="badge badge-low">Low Stock</span>' : ''}
                                 </div>
                             </div>
-                            <button class="card-delete" onclick="deleteItem('${item.id}')">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                            </button>
+                            <div class="card-actions">
+                                <button class="card-edit" onclick="openEditModal('${item.id}')" aria-label="Edit item">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                </button>
+                                <button class="card-delete" onclick="deleteItem('${item.id}')" aria-label="Delete item">
+                                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                </button>
+                            </div>
                         </div>
                         <div class="quantity-display">
                             <div class="quantity-controls">
@@ -1440,6 +1561,59 @@
                 // Save to sheet
                 await apiCall('addItem', item);
                 showToast('Item added!');
+            });
+        }
+
+        // ==================== EDIT ITEM ====================
+        function openEditModal(id) {
+            const item = inventory.find(i => i.id === id);
+            if (!item) return;
+
+            // Populate form with item data
+            $('#editItemId').value = item.id;
+            $('#editItemName').value = item.item;
+            $('#editItemQty').value = item.quantity;
+            $('#editItemUnit').value = item.unit;
+            $('#editItemMinQty').value = item.minQuantity;
+            $('#editItemStore').value = item.store;
+            $('#editItemCategory').value = item.category;
+            $('#editItemPriority').value = item.priority;
+            $('#editItemNotes').value = item.notes || '';
+
+            // Open modal
+            $('#editModal').classList.add('active');
+        }
+
+        function initEditForm() {
+            $('#editItemForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const id = $('#editItemId').value;
+                const updatedItem = {
+                    id: id,
+                    item: $('#editItemName').value,
+                    quantity: Number($('#editItemQty').value),
+                    unit: $('#editItemUnit').value,
+                    minQuantity: Number($('#editItemMinQty').value),
+                    store: $('#editItemStore').value,
+                    category: $('#editItemCategory').value,
+                    priority: $('#editItemPriority').value,
+                    notes: $('#editItemNotes').value
+                };
+
+                // Update local state
+                const index = inventory.findIndex(i => i.id === id);
+                if (index !== -1) {
+                    inventory[index] = { ...inventory[index], ...updatedItem, lastUpdated: new Date().toISOString() };
+                }
+                renderInventory();
+                
+                // Close modal
+                $('#editModal').classList.remove('active');
+                
+                // Save to sheet
+                await apiCall('updateItem', updatedItem);
+                showToast('Item updated!');
             });
         }
 
@@ -1651,6 +1825,7 @@
             initNavigation();
             initModals();
             initAddForm();
+            initEditForm();
             initFilters();
             initScan();
             initMeals();
