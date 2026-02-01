@@ -1665,27 +1665,56 @@
 
             container.innerHTML = filtered.map(item => {
                 const storeClass = item.store?.toLowerCase().replace("'", "");
-                const checkedClass = item.purchased ? 'checked' : '';
+                
+                // Find the matching inventory item to get current quantity
+                const invItem = inventory.find(i => String(i.id) === String(item.id));
+                const currentQty = invItem ? invItem.quantity : 0;
+                const minQty = invItem ? invItem.minQuantity : 1;
                 
                 return `
-                    <div class="list-item ${checkedClass}" data-id="${item.id}">
-                        <div class="checkbox ${checkedClass}" onclick="togglePurchased('${item.id}')">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                        </div>
+                    <div class="list-item" data-id="${item.id}">
                         <div class="list-item-content">
                             <div class="list-item-name">${item.item}</div>
                             <div class="list-item-meta">
-                                <span>${item.quantityNeeded} ${item.unit}</span>
+                                <span>Need ${item.quantityNeeded} ${item.unit}</span>
                                 <span class="badge badge-store ${storeClass}">${item.store}</span>
                             </div>
+                        </div>
+                        <div class="quantity-controls" style="margin-left: auto;">
+                            <button class="qty-btn" onclick="updateFromList('${item.id}', -1)">−</button>
+                            <span class="qty-value">${currentQty}</span>
+                            <button class="qty-btn" onclick="updateFromList('${item.id}', 1)">+</button>
                         </div>
                     </div>
                 `;
             }).join('');
         }
 
+        async function updateFromList(id, delta) {
+            // Update inventory quantity
+            const item = inventory.find(i => String(i.id) === String(id));
+            if (item) {
+                const newQty = Math.max(0, Number(item.quantity) + delta);
+                item.quantity = newQty;
+                
+                // Re-render both views
+                renderInventory();
+                renderShoppingList();
+                
+                // Save to server - this will also update shopping list on backend
+                await apiCall('updateQuantity', { id, quantity: newQty });
+                
+                // If no longer low stock, remove from local shopping list
+                if (newQty > item.minQuantity) {
+                    shoppingList = shoppingList.filter(i => String(i.id) !== String(id));
+                    renderShoppingList();
+                    showToast(`${item.item} restocked!`);
+                }
+            }
+        }
+
         async function togglePurchased(id) {
-            const item = shoppingList.find(i => i.id === id);
+            const item = shoppingList.find(i => String(i.id) === String(id));
             if (item) {
                 item.purchased = !item.purchased;
                 item.datePurchased = item.purchased ? new Date().toISOString() : '';
@@ -1697,17 +1726,13 @@
         async function refreshShoppingList() {
             showToast('Syncing shopping list...');
             try {
-                const response = await fetch(CONFIG.WEBHOOKS.SYNC_LIST, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'sync' })
-                });
+                // Call the Apps Script sync function
+                await apiCall('syncShoppingList', {});
                 
-                // Reload list after sync
-                setTimeout(() => {
-                    loadShoppingList();
-                    showToast('Shopping list updated!');
-                }, 2000);
+                // Reload both inventory and shopping list
+                await loadInventory();
+                await loadShoppingList();
+                showToast('Shopping list updated!');
             } catch (error) {
                 console.error('Sync error:', error);
                 showToast('Error syncing list');
