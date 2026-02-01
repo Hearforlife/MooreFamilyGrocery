@@ -1878,20 +1878,44 @@
             let loadedInventory = false;
             let loadedList = false;
 
-            // Load inventory first
-            const invResult = await apiGet('getInventory');
-            if (invResult && invResult.data) {
-                inventory = invResult.data;
+            try {
+                // Load inventory first with timeout
+                const invResult = await Promise.race([
+                    apiGet('getInventory'),
+                    new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 10000))
+                ]);
+                
+                if (invResult && invResult.data) {
+                    inventory = invResult.data;
+                    loadedInventory = true;
+                } else {
+                    inventory = [];
+                }
                 renderInventory();
-                loadedInventory = true;
+            } catch (error) {
+                console.error('Inventory load error:', error);
+                inventory = [];
+                renderInventory();
             }
 
-            // Then load shopping list
-            const listResult = await apiGet('getShoppingList');
-            if (listResult && listResult.data) {
-                shoppingList = listResult.data;
+            try {
+                // Then load shopping list with timeout
+                const listResult = await Promise.race([
+                    apiGet('getShoppingList'),
+                    new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 10000))
+                ]);
+                
+                if (listResult && listResult.data) {
+                    shoppingList = listResult.data;
+                    loadedList = true;
+                } else {
+                    shoppingList = [];
+                }
                 renderShoppingList();
-                loadedList = true;
+            } catch (error) {
+                console.error('Shopping list load error:', error);
+                shoppingList = [];
+                renderShoppingList();
             }
 
             // Only show error if both failed
