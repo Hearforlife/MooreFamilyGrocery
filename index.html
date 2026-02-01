@@ -1512,7 +1512,7 @@
         }
 
         async function updateQuantity(id, delta) {
-            const item = inventory.find(i => i.id === id);
+            const item = inventory.find(i => String(i.id) === String(id));
             if (item) {
                 const newQty = Math.max(0, Number(item.quantity) + delta);
                 item.quantity = newQty;
@@ -1523,7 +1523,7 @@
 
         async function deleteItem(id) {
             if (confirm('Delete this item?')) {
-                inventory = inventory.filter(i => i.id !== id);
+                inventory = inventory.filter(i => String(i.id) !== String(id));
                 renderInventory();
                 await apiCall('deleteItem', { id });
                 showToast('Item deleted');
@@ -1566,7 +1566,7 @@
 
         // ==================== EDIT ITEM ====================
         function openEditModal(id) {
-            const item = inventory.find(i => i.id === id);
+            const item = inventory.find(i => String(i.id) === String(id));
             if (!item) return;
 
             // Populate form with item data
@@ -1602,7 +1602,7 @@
                 };
 
                 // Update local state
-                const index = inventory.findIndex(i => i.id === id);
+                const index = inventory.findIndex(i => String(i.id) === String(id));
                 if (index !== -1) {
                     inventory[index] = { ...inventory[index], ...updatedItem, lastUpdated: new Date().toISOString() };
                 }
